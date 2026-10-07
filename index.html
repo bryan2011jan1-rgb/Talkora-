@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b0d10">
+<title>Talkora</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#080a0d;color:#f5f7fa;font-family:Arial,sans-serif}
+button,input,textarea{font:inherit}
+.app{max-width:460px;margin:auto;min-height:100vh;background:#0d1015;padding-bottom:82px}
+.screen{display:none;padding:18px}
+.screen.active{display:block}
+.top{padding:24px 20px 4px}
+.logo{font-size:28px;font-weight:800}
+.tag,.muted{color:#929aa5;font-size:13px;line-height:1.45}
+.hero{padding:22px;border:1px solid #252b34;border-radius:23px;background:#151920;margin:15px 0}
+.hero h1{font-size:25px;margin:8px 0}
+.pill{font-size:10px;letter-spacing:1px;background:#202630;border-radius:99px;padding:7px 10px;color:#b9c1cb}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.card{background:#151920;border:1px solid #252b34;border-radius:18px;padding:17px;min-height:105px}
+.card b{display:block;margin-top:9px}
+.card small{color:#8f98a4;display:block;margin-top:5px;line-height:1.35}
+.ico{font-size:24px}
+.btn{border:0;border-radius:15px;background:#f0f2f4;color:#101216;padding:13px 16px;font-weight:700}
+.darkbtn{background:#202630;color:#fff}
+.wide{width:100%;margin-top:12px}
+.section{font-weight:750;margin:20px 0 11px}
+.nav{position:fixed;bottom:0;left:0;right:0;max-width:460px;margin:auto;background:#11151a;border-top:1px solid #252b34;display:flex;justify-content:space-around;padding:9px 3px 12px;z-index:10}
+.nav button{background:none;border:0;color:#747e8a;font-size:10px;padding:6px 8px}
+.nav button.active{color:#fff}
+.chat{height:calc(100vh - 230px);display:flex;flex-direction:column}
+.messages{flex:1;overflow:auto;padding:4px 0}
+.bubble{max-width:84%;padding:12px 14px;border-radius:17px;margin:8px 0;font-size:14px;line-height:1.45}
+.ai{background:#191f27;border-bottom-left-radius:5px}
+.me{margin-left:auto;background:#303743;border-bottom-right-radius:5px}
+.composer{display:flex;gap:8px;margin-top:8px}
+.composer input,.area{background:#151920;border:1px solid #2a313b;color:#fff;border-radius:15px;padding:13px;outline:0}
+.composer input{flex:1}
+.area{width:100%;height:155px;resize:none}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.item{padding:15px;background:#151920;border:1px solid #252b34;border-radius:16px;margin:9px 0}
+.back{background:none;border:0;color:#aeb6c0;padding:0;font-size:14px}
+.toast{position:fixed;left:50%;bottom:95px;transform:translateX(-50%);background:#202630;padding:10px 14px;border-radius:12px;font-size:12px;display:none;z-index:20}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<div class="top">
+<div class="logo">Talkora</div>
+<div class="tag">A space to talk, reflect &amp; grow.</div>
+</div>
+
+<section id="home" class="screen active">
+<div class="hero">
+<span class="pill">YOUR SPACE</span>
+<h1>How are you feeling today?</h1>
+<p class="muted">No pressure. No judgement. Just a place to put your thoughts into words.</p>
+<button class="btn wide" onclick="openChat('Quick Talk')">Start talking →</button>
+</div>
+
+<div class="section">Choose your space</div>
+
+<div class="grid">
+<div class="card" onclick="openChat('Quick Talk')">
+<div class="ico">💬</div><b>Quick Talk</b><small>Something on your mind?</small>
+</div>
+
+<div class="card" onclick="openChat('Vent')">
+<div class="ico">🌧️</div><b>Vent</b><small>Let things out.</small>
+</div>
+
+<div class="card" onclick="openChat('Study')">
+<div class="ico">📚</div><b>Study</b><small>Focus, pressure &amp; motivation.</small>
+</div>
+
+<div class="card" onclick="openChat('Relationships')">
+<div class="ico">🫶</div><b>Relationships</b><small>Friends, family &amp; feelings.</small>
+</div>
+
+<div class="card" onclick="openChat('Confidence')">
+<div class="ico">✨</div><b>Confidence</b><small>Build yourself up.</small>
+</div>
+
+<div class="card" onclick="openChat('Growth')">
+<div class="ico">🌱</div><b>Personal Growth</b><small>Small steps forward.</small>
+</div>
+</div>
+
+<div class="section">Daily check-in</div>
+
+<div class="card">
+<b>How are you feeling?</b>
+<div class="grid" style="margin-top:12px">
+<button class="btn darkbtn" onclick="mood('Great')">😊 Great</button>
+<button class="btn darkbtn" onclick="mood('Okay')">🙂 Okay</button>
+<button class="btn darkbtn" onclick="mood('Low')">😕 Low</button>
+<button class="btn darkbtn" onclick="mood('Stressed')">😣 Stressed</button>
+</div>
+</div>
+</section>
+
+<section id="talk" class="screen">
+<button class="back" onclick="show('home')">← Home</button>
+
+<div class="hero">
+<span class="pill" id="mode">QUICK TALK</span>
+<h1 id="chatTitle">I'm listening.</h1>
+<p class="muted">This preview uses Talkora's local demo brain.</p>
+</div>
+
+<div class="chat">
+<div id="messages" class="messages"></div>
+
+<div class="composer">
+<input id="msg" placeholder="Type what's on your mind…" onkeydown="if(event.key==='Enter')send()">
+<button class="btn" onclick="send()">Send</button>
+</div>
+</div>
+</section>
+
+<section id="journal" class="screen">
+<div class="section">Journal</div>
+
+<div class="hero">
+<span class="pill">REFLECTION</span>
+<h1>Put it into words.</h1>
+<p class="muted">Entries are saved locally on this device in this prototype.</p>
+</div>
+
+<textarea id="journalText" class="area" placeholder="Write anything you want to remember…"></textarea>
+
+<button class="btn wide" onclick="saveJournal()">Save entry</button>
+
+<div id="jstatus" class="muted" style="margin-top:10px"></div>
+
+<div class="section">Recent entry</div>
+<div id="recent" class="item muted">No entry yet.</div>
+</section>
+
+<section id="growth" class="screen">
+<div class="section">Growth</div>
+
+<div class="hero">
+<span class="pill">YOUR PROGRESS</span>
+<h1>Small steps count.</h1>
+<p class="muted">Choose goals that are realistic and meaningful to you.</p>
+</div>
+
+<div id="goals"></div>
+
+<button class="btn wide" onclick="addGoal()">+ Add a goal</button>
+</section>
+
+<section id="profile" class="screen">
+<div class="section">Profile &amp; Settings</div>
+
+<div class="hero">
+<h1>Your Talkora space</h1>
+<p class="muted">Simple, private and built around you.</p>
+</div>
+
+<div class="item">
+<div class="row"><b>🤖 AI brain</b><span class="pill">DEMO</span></div>
+<p class="muted">This version uses local responses. A real AI API can be connected later for live generated conversations.</p>
+</div>
+
+<div class="item">
+<b>🔐 Privacy</b>
+<p class="muted">Talkora should clearly tell users what data is stored and who can access it. No hidden admin access to private conversations.</p>
+</div>
+
+<div class="item">
+<b>📱 Browser support</b>
+<p class="muted">Designed to work in modern Android and iPhone browsers.</p>
+</div>
+
+<div class="item">
+<b>🛟 Safety</b>
+<p class="muted">Talkora is a support tool, not a replacement for a trusted adult, qualified professional or emergency service.</p>
+</div>
+
+<button class="btn darkbtn wide" onclick="clearData()">Clear local data</button>
+</section>
+
+<div id="toast" class="toast"></div>
+
+<nav class="nav">
+<button class="active" onclick="show('home',this)">⌂<br>Home</button>
+<button onclick="show('talk',this)">◉<br>Talk</button>
+<button onclick="show('journal',this)">✎<br>Journal</button>
+<button onclick="show('growth',this)">✓<br>Growth</button>
+<button onclick="show('profile',this)">●<br>Profile</button>
+</nav>
+
+</div>
+
+<script>
+let current='Quick Talk';
+let history=JSON.parse(localStorage.getItem('talkora_history')||'[]');
+
+function show(id,btn){
+document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+document.getElementById(id).classList.add('active');
+
+if(btn){
+document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
+btn.classList.add('active');
+}
+}
+
+function openChat(mode){
+current=mode;
+document.getElementById('mode').textContent=mode.toUpperCase();
+
+document.getElementById('chatTitle').textContent=
+mode==='Vent'?'Let it out.':"I'm listening.";
+
+show('talk');
+
+document.getElementById('messages').innerHTML=
+'<div class="bubble ai">Hey 👋 This is your '+esc(mode)+' space. Take your time and tell me what\'s going on.</div>';
+}
+
+function esc(x){
+return x.replace(/[&<>"']/g,c=>({
+'&':'&amp;',
+'<':'&lt;',
+'>':'&gt;',
+'"':'&quot;',
+"'":'&#39;'
+}[c]));
+}
+
+function send(){
+let inp=document.getElementById('msg');
+let t=inp.value.trim();
+
+if(!t)return;
+
+let box=document.getElementById('messages');
+
+box.innerHTML+='<div class="bubble me">'+esc(t)+'</div>';
+
+inp.value='';
+
+let s=t.toLowerCase();
+
+let reply='I hear you. Let’s take it one step at a time. What part of this feels most important right now?';
+
+if(current==='Vent')
+reply='Go ahead and let it out. You don’t have to make it sound perfect. What happened?';
+
+else if(current==='Study')
+reply='That sounds like a lot to carry. Let’s break it into one small thing you can handle first. What are you struggling with most?';
+
+else if(current==='Relationships')
+reply='Relationships can get complicated quickly. What happened, and what do you wish the other person understood?';
+
+else if(current==='Confidence')
+reply='You don’t have to have everything figured out to make progress. What is making you doubt yourself?';
+
+else if(current==='Growth')
+reply='Growth doesn’t have to be dramatic. What is one thing you would genuinely like to improve?';
+
+else if(/happy|great|good/.test(s))
+reply='I’m glad to hear that 😊 What made today feel good?';
+
+else if(/sad|low|tired|stress|stressed|bad/.test(s))
+reply='I hear you. You don’t have to solve everything right now. What has been weighing on you the most?';
+
+history.push({mode:current,user:t});
+
+localStorage.setItem('talkora_history',JSON.stringify(history));
+
+setTimeout(()=>{
+box.innerHTML+='<div class="bubble ai">'+reply+'</div>';
+box.scrollTop=box.scrollHeight;
+},450);
+
+box.scrollTop=box.scrollHeight;
+}
+
+function mood(x){
+localStorage.setItem('talkora_mood',x);
+toast('Check-in saved: '+x);
+openChat('Daily Check-in');
+}
+
+function saveJournal(){
+let t=document.getElementById('journalText').value.trim();
+
+if(!t)return;
+
+localStorage.setItem('talkora_journal',t);
+
+document.getElementById('recent').textContent=t;
+document.getElementById('jstatus').textContent='Saved on this device ✓';
+
+toast('Journal saved');
+}
+
+function addGoal(){
+let g=prompt('What goal do you want to add?');
+
+if(!g)return;
+
+let goals=JSON.parse(localStorage.getItem('talkora_goals')||'[]');
+
+goals.push(g);
+
+localStorage.setItem('talkora_goals',JSON.stringify(goals));
+
+renderGoals();
+}
+
+function renderGoals(){
+let goals=JSON.parse(localStorage.getItem('talkora_goals')||'[]');
+
+document.getElementById('goals').innerHTML=
+goals.map((g,i)=>
+'<div class="item"><div class="row"><b>'+esc(g)+'</b><button class="btn darkbtn" onclick="doneGoal('+i+')">✓</button></div></div>'
+).join('')||
+'<div class="item muted">No goals yet. Add your first one.</div>';
+}
+
+function doneGoal(i){
+let goals=JSON.parse(localStorage.getItem('talkora_goals')||'[]');
+
+goals.splice(i,1);
+
+localStorage.setItem('talkora_goals',JSON.stringify(goals));
+
+renderGoals();
+
+toast('Goal completed ✓');
+}
+
+function clearData(){
+localStorage.clear();
+location.reload();
+}
+
+function toast(t){
+let x=document.getElementById('toast');
+
+x.textContent=t;
+x.style.display='block';
+
+setTimeout(()=>x.style.display='none',1800);
+}
+
+window.onload=()=>{
+let j=localStorage.getItem('talkora_journal');
+
+if(j){
+document.getElementById('journalText').value=j;
+document.getElementById('recent').textContent=j;
+}
+
+renderGoals();
+}
+</script>
+
+</body>
+  </html>
